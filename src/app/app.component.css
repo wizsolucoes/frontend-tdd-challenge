@@ -1,0 +1,11 @@
+.container {
+  margin-top: 5rem;
+}
+
+label {
+  display: block;
+}
+
+.validation-message {
+  color: red;
+}
