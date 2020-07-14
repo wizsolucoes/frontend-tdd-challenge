@@ -1,0 +1,67 @@
+# Node.js with Angular
+# Build a Node.js project that uses Angular
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+# YAML reference:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema
+
+variables:
+  BuildRootFolder: '$(System.DefaultWorkingDirectory)/dist/frontend-tdd-challenge'
+  CoverageFolder: '$(System.DefaultWorkingDirectory)/coverage/frontend-tdd-challenge'
+  TestResultPath: '**/tests.xml'
+
+resources:
+  repositories:
+      - repository: angulartemplate
+        type: git
+        name: WizPipelines/angular-template
+        ref: refs/tags/v1.0
+
+trigger:
+  batch: true
+
+stages:
+  - stage: Build
+    pool: 'Hosted Ubuntu 1604'
+    jobs:
+        - job: Build
+          displayName: 'Build Solution'
+          condition: succeeded()
+          steps:
+              - template: angularci.yml@angulartemplate
+                parameters:
+                    skipPublish: true
+                    skipSonar: true
+                    distFolder: $(BuildRootFolder)
+  - stage: Staging
+    pool: 'Wiz Hosted Ubuntu 1604'
+    condition: and(succeeded(), or(contains(variables['Build.SourceBranch'], 'master'), contains(variables['Build.SourceBranch'], 'release')))
+    dependsOn: [Build]
+    jobs:
+        - job: Build
+          displayName: 'Build Solution'
+          condition: succeeded()
+          steps:
+              - template: angularci.yml@angulartemplate
+                parameters:
+                    artifactName: 'staging'
+                    buildConfiguration: 'production'
+                    skipPublish: true
+                    skipSonar: true
+                    distFolder: $(BuildRootFolder)
+  - stage: Production
+    pool: 'Wiz Hosted Ubuntu 1604'
+    condition: and(succeeded(),contains(variables['Build.SourceBranch'], 'master'))
+    dependsOn: [Staging]
+    jobs:
+        - job: Build
+          displayName: 'Build Solution'
+          condition: succeeded()
+          steps:
+              - template: angularci.yml@angulartemplate
+                parameters:
+                    artifactName: 'production'
+                    buildConfiguration: 'production'
+                    skipPublish: true
+                    skipSonar: true
+                    distFolder: $(BuildRootFolder)
