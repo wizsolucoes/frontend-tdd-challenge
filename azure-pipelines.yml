@@ -34,7 +34,7 @@ stages:
                     skipSonar: true
                     distFolder: $(BuildRootFolder)
   - stage: Staging
-    pool: 'Wiz Hosted Ubuntu 1604'
+    pool: 'Hosted Ubuntu 1604'
     condition: and(succeeded(), or(contains(variables['Build.SourceBranch'], 'master'), contains(variables['Build.SourceBranch'], 'release')))
     dependsOn: [Build]
     jobs:
@@ -50,7 +50,7 @@ stages:
                     skipSonar: true
                     distFolder: $(BuildRootFolder)
   - stage: Production
-    pool: 'Wiz Hosted Ubuntu 1604'
+    pool: 'Hosted Ubuntu 1604'
     condition: and(succeeded(),contains(variables['Build.SourceBranch'], 'master'))
     dependsOn: [Staging]
     jobs:
